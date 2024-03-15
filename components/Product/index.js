@@ -5,6 +5,7 @@ import ProductForm from "../ProductForm/index.js";
 import { ProductCard } from "./Product.styled";
 import { StyledLink } from "../Link/Link.styled";
 import { StyledButton } from "../Button/Button.styled";
+import { StyledForm, StyledHeading, StyledLabel } from "../ProductForm/ProductForm.styled.js";
 import Comments from "../Comments";
 
 export default function Product() {
@@ -47,6 +48,29 @@ export default function Product() {
     }
   }
 
+  async function handleAddComment(event) {
+    event.preventDefault();
+
+    const formData = new FormData(event.target);
+    const commentData = Object.fromEntries(formData);
+
+    const response = await fetch("/api/reviews", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ productId: id, review: commentData }),
+    });
+
+    if (!response.ok) {
+      console.error(response.status);
+      return;
+    }
+
+    mutate();
+    event.target.reset();
+  }
+
   if (isLoading) {
     return <h1>Loading...</h1>;
   }
@@ -64,6 +88,22 @@ export default function Product() {
           Price: {data.price} {data.currency}
         </p>
         {data.reviews.length > 0 && <Comments reviews={data.reviews} />}
+        <StyledForm onSubmit={handleAddComment}>
+          <StyledLabel htmlFor="title">
+            Title:
+            <input type="text" id="title" name="title" />
+          </StyledLabel>
+          <StyledLabel htmlFor="text">
+            Text:
+            <input type="text" id="text" name="text" />
+          </StyledLabel>
+          <StyledLabel htmlFor="rating">
+            Rating:
+            <input type="number" id="rating" name="rating" min="0" max="5" />
+          </StyledLabel>
+          <StyledButton type="submit">Add comment</StyledButton>
+        </StyledForm>
+
         <StyledButton type="button" onClick={() => setIsEditMode(!isEditMode)}>
           Edit fish
         </StyledButton>
